@@ -202,6 +202,7 @@ function renderSummaryCards() {
  */
 function render() {
   renderSummaryCards();
+  renderHomePage();
 
   // Transactions
   if (typeof renderTransactions === 'function') {
@@ -264,11 +265,56 @@ function switchSection(sectionId) {
   }
 
   const titles = {
+    home: 'Home',
     dashboard: 'Dashboard',
     transactions: 'Transactions',
     insights: 'Insights'
   };
-  document.getElementById('page-title').textContent = titles[sectionId] || 'Dashboard';
+  document.getElementById('page-title').textContent = titles[sectionId] || 'Home';
+
+  // Also update the logo active state
+  const logoLink = document.getElementById('logo-link');
+  if (logoLink) {
+    logoLink.classList.toggle('active', sectionId === 'home');
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER HOME / LANDING PAGE
+   ═══════════════════════════════════════════════ */
+
+function renderHomePage() {
+  const summary = computeSummary(appState.transactions);
+
+  // Update hero stat cards
+  const homeBalance = document.getElementById('home-balance');
+  const homeIncome = document.getElementById('home-income');
+  const homeExpenses = document.getElementById('home-expenses');
+
+  if (homeBalance) homeBalance.textContent = formatCurrency(summary.balance);
+  if (homeIncome) homeIncome.textContent = formatCurrency(summary.income);
+  if (homeExpenses) homeExpenses.textContent = formatCurrency(summary.expenses);
+
+  // Transaction count
+  const txnCount = document.getElementById('home-txn-count');
+  if (txnCount) txnCount.textContent = appState.transactions.length;
+
+  // Unique categories
+  const categories = new Set(appState.transactions.map(t => t.category));
+  const catEl = document.getElementById('home-categories');
+  if (catEl) catEl.textContent = categories.size;
+
+  // Months tracked
+  const months = new Set(appState.transactions.map(t => t.date.substring(0, 7)));
+  const monthEl = document.getElementById('home-months');
+  if (monthEl) monthEl.textContent = months.size;
+
+  // Savings rate
+  const savingsRate = summary.income > 0
+    ? Math.round(((summary.income - summary.expenses) / summary.income) * 100)
+    : 0;
+  const savingsEl = document.getElementById('home-savings-rate');
+  if (savingsEl) savingsEl.textContent = savingsRate + '%';
 }
 
 /* ═══════════════════════════════════════════════
@@ -676,6 +722,11 @@ function handleKeyboardShortcuts(e) {
       saveToLocalStorage();
       break;
 
+    case '0':
+      e.preventDefault();
+      switchSection('home');
+      break;
+
     case '1':
       e.preventDefault();
       switchSection('dashboard');
@@ -746,6 +797,28 @@ document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('sidebar').classList.remove('open');
       document.getElementById('sidebar-overlay').classList.remove('active');
     });
+  });
+
+  // ── Logo Click → Navigate to Home ──
+  const logoLink = document.getElementById('logo-link');
+  if (logoLink) {
+    logoLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      switchSection('home');
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebar-overlay').classList.remove('active');
+    });
+  }
+
+  // ── Feature Cards → Navigate to Sections ──
+  document.getElementById('feature-dashboard').addEventListener('click', function () {
+    switchSection('dashboard');
+  });
+  document.getElementById('feature-transactions').addEventListener('click', function () {
+    switchSection('transactions');
+  });
+  document.getElementById('feature-insights').addEventListener('click', function () {
+    switchSection('insights');
   });
 
   // ── Mobile Menu Toggle ──
