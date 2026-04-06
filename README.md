@@ -81,9 +81,11 @@ No frameworks. No build tools. Every line of code is handwritten.
 - Graceful fallback to mock data on corruption
 
 ### Dark Mode
-- Toggle via navbar button (🌙/☀️)
+- **Default theme is dark** — loads in dark mode on first visit with zero flicker
+- **Flash prevention** — inline `<script>` in `<head>` applies theme before CSS loads, eliminating the light→dark flash
+- Toggle via navbar button (🌙/☀️) or keyboard shortcut (`D`)
 - Uses CSS custom properties — all colors swap via `.dark-mode` class
-- Preference persisted in localStorage
+- Preference persisted in localStorage across sessions
 
 ### Data Persistence
 - Transactions, role, and dark mode preference saved to `localStorage`
