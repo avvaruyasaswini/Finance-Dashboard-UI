@@ -43,29 +43,42 @@ No frameworks. No build tools. Every line of code is handwritten.
 
 ### Dashboard Overview
 - **Summary Cards** — Total Balance, Income, Expenses (computed from data, formatted as ₹ with Indian locale)
+- **Count-up Animation** — values animate smoothly with ease-out cubic easing when data changes
 - **Line Chart** — Monthly Balance Trend (Balance, Income, Expenses over time)
 - **Doughnut Chart** — Spending by Category (with percentage tooltips)
 
-### Transactions
+### Transactions (Full CRUD)
 - Sortable, searchable, filterable table with 25 mock entries
+- **Add Transaction** — modal form with validation (Admin only)
+- **Edit Transaction** — pre-populates modal with existing data (Admin only)
+- **Delete Transaction** — confirmation dialog with warning before deletion (Admin only)
 - **Search** by description or category (live filtering)
-- **Filter** by type (Income/Expense) and category
-- **Dynamic Category Filtering** — category dropdown updates based on selected type (Income shows only Salary, Freelance; Expense shows only expense categories)
+- **Filter by Type** — Income / Expense / All
+- **Filter by Category** — dynamic dropdown that updates based on selected type
+- **Filter by Date Range** — From/To date pickers with a Clear Dates button
 - **Sort** by date or amount (ascending/descending)
 - **Export CSV** — exports currently filtered transactions as a downloadable CSV file
 - **Empty State** — friendly "No transactions found" message with icon when filters yield no results; table is hidden
 
 ### Role-Based UI
 - **Viewer** (default): Read-only access to dashboard, charts, and transactions
-- **Admin**: Can add and edit transactions via a modal form
+- **Admin**: Full CRUD — can add, edit, and delete transactions via modal forms
 - Switch roles using the dropdown in the top navbar
 - Role is persisted across page refreshes
+- Toast notification on role switch
 
 ### Insights
 - **Highest Spending Category** — with icon, amount, and transaction count
 - **Month-over-Month** — compares current vs previous month's expenses with trend icon (↑/↓)
 - **Income vs Expense Ratio** — with savings rate percentage
 - **Visual Polish** — color-coded accent stripes (green/red), Material Icons, sentiment-based coloring
+
+### State Management
+- Centralized `appState` object as single source of truth (vanilla JS equivalent of a global store)
+- All mutations trigger a central `render()` function that reconciles the entire UI
+- State properties: `transactions`, `filtered`, `role`, `filter`, `sort`, `darkMode`, `editingId`
+- Persistent across page refreshes via `localStorage`
+- Graceful fallback to mock data on corruption
 
 ### Dark Mode
 - Toggle via navbar button (🌙/☀️)
@@ -77,6 +90,36 @@ No frameworks. No build tools. Every line of code is handwritten.
 - Loads automatically on page refresh
 - Falls back to mock data if no saved state exists
 
+### Toast Notifications
+- Non-intrusive toast messages for user feedback (success / error / info)
+- Slide-in animation from the right, auto-dismiss after 3 seconds
+- Used for: add, edit, delete confirmations; role switch; CSV export
+
+### Form Validation
+- Inline error messages on each form field
+- Validates: required fields, minimum description length, positive non-zero amounts
+- Error styling clears on input, preventing stale messages
+
+### Delete Confirmation Dialog
+- Dedicated confirmation modal with warning icon and transaction details
+- Focus-trapped for accessibility
+- Cancel and Delete buttons with keyboard support
+
+### Keyboard Shortcuts
+- `N` — New Transaction (Admin only)
+- `/` — Focus Search (navigates to Transactions)
+- `D` — Toggle Dark Mode
+- `0` `1` `2` `3` — Navigate to Home / Dashboard / Transactions / Insights
+- `?` — Show Shortcuts help dialog
+- `Esc` — Close any open dialog or mobile sidebar
+
+### Accessibility
+- **Focus Trap** — Tab/Shift+Tab cycling within modals (add/edit, delete confirmation, shortcuts)
+- **Focus Restore** — returns focus to the triggering element when a dialog closes
+- **ARIA attributes** — `role="dialog"`, `aria-modal`, `aria-label`, `aria-labelledby`, `aria-describedby`, `aria-live` on toast container
+- **Focus-visible outlines** — visible keyboard focus rings on all interactive elements
+- **Semantic HTML** — proper heading hierarchy, `<nav>`, `<aside>`, `<main>`, `<section>` elements
+
 ### Currency Formatting
 - All amounts displayed using **₹** (Indian Rupee) symbol
 - Formatted with `toLocaleString('en-IN')` for proper Indian number formatting (e.g., ₹12,088.00)
@@ -85,14 +128,21 @@ No frameworks. No build tools. Every line of code is handwritten.
 - **Desktop**: Fixed sidebar, 3-column grid layouts
 - **Tablet (≤1024px)**: Charts stack vertically, insights use 2-column grid
 - **Mobile (≤768px)**: Sidebar collapses to hamburger menu with overlay tap-to-close, cards stack vertically, table scrolls horizontally, filters go full-width
-- **Small Mobile (≤480px)**: Further reduced font sizes and gaps
+- **Small Mobile (≤480px)**: Further reduced font sizes and gaps, full-width action buttons
 
 ### Animations & Transitions
-- Hover effects on cards (translateY), buttons, chart containers, and edit buttons
+- Hover effects on cards (translateY), buttons, chart containers, and action buttons
 - Fade-in animation on section switches
 - Staggered card entrance animation
 - Modal entrance animation (scale + fade)
+- Toast slide-in / slide-out animations
+- Count-up animation on summary card values
 - Smooth 0.25s transitions throughout
+
+### Print Stylesheet
+- Clean print layout that hides sidebar, navbar, filters, and action buttons
+- Page breaks between sections
+- Removes shadows and animations for clean output
 
 ---
 
@@ -112,23 +162,23 @@ finance-dashboard/
 
 ---
 
-## State Management
+## State Management (Detailed)
 
-A single `appState` object serves as the central source of truth:
+A single `appState` object serves as the central source of truth — the vanilla JavaScript equivalent of a global store (like Context, Redux, or Zustand in React):
 
 ```javascript
 const appState = {
   transactions: [],     // All transactions (source of truth)
   filtered: [],         // Currently displayed after filter/search/sort
   role: 'viewer',       // 'viewer' or 'admin'
-  filter: { type, category, search },
+  filter: { type, category, search, dateFrom, dateTo },
   sort: 'date-desc',
   darkMode: false,
-  editingId: null       // ID of transaction being edited
+  editingId: null       // ID of transaction being edited (null = adding new)
 };
 ```
 
-When any state changes (role switch, filter, add/edit transaction), a central `render()` function is called which updates all DOM elements based on the current state. This keeps logic **predictable** and easy to trace.
+When any state changes (role switch, filter, add/edit/delete transaction), a central `render()` function is called which updates all DOM elements based on the current state. This keeps logic **predictable** and easy to trace — similar to how React re-renders on state change.
 
 State is persisted to `localStorage` on every mutation and loaded on page initialization.
 
@@ -140,10 +190,11 @@ State is persisted to `localStorage` on every mutation and loaded on page initia
 2. In the top navbar, change the **Role** dropdown to **"Admin"**
 3. Navigate to **Transactions** → you'll see:
    - A **"+ Add Transaction"** button appears
-   - **"Edit"** buttons appear on every row
+   - **"Edit"** and **"Delete"** buttons appear on every row
 4. Click **"+ Add Transaction"** → fill out the form → Save
 5. The new transaction immediately appears in the table and updates summary cards + charts
-6. Switch back to **Viewer** → admin controls disappear
+6. Click **"Delete"** on any row → a confirmation dialog appears → confirm to remove
+7. Switch back to **Viewer** → admin controls disappear
 
 ---
 
@@ -212,7 +263,6 @@ State is persisted to `localStorage` on every mutation and loaded on page initia
 - Data is not persisted to a backend — changes are stored in browser localStorage only
 - Chart.js requires CDN access (won't load via `file://` protocol in some browsers)
 - No pagination — all 25 transactions render at once (suitable for this data size)
-- No delete functionality (only add/edit)
 
 ---
 
