@@ -268,7 +268,7 @@ State is persisted to `localStorage` on every mutation and loaded on page initia
 
 ## Deployed Link
 
-*GitHub Pages / Netlify — to be added after deployment*
+https://avvaruyasaswini.github.io/finance-dashboard/
 
 ---
 
