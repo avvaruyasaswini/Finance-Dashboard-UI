@@ -218,11 +218,6 @@ function render() {
     renderInsights();
   }
 
-  // Goals
-  if (typeof renderGoals === 'function') {
-    renderGoals();
-  }
-
   // Role-based UI
   updateRoleUI();
 }
@@ -736,11 +731,6 @@ document.addEventListener('DOMContentLoaded', function () {
   // ── Initialize transaction filter listeners ──
   if (typeof initTransactionListeners === 'function') {
     initTransactionListeners();
-  }
-
-  // ── Initialize goals listeners ──
-  if (typeof initGoalsListeners === 'function') {
-    initGoalsListeners();
   }
 
   // ── Initial Render ──

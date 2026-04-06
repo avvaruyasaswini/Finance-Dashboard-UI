@@ -48,10 +48,6 @@
         <span class="nav-icon">◉</span>
         <span class="nav-text">Insights</span>
       </a>
-      <a href="#goals" class="nav-link" data-section="goals" id="nav-goals">
-        <span class="nav-icon">🎯</span>
-        <span class="nav-text">Goals</span>
-      </a>
     </nav>
 
     <div class="sidebar-footer">
@@ -240,22 +236,6 @@
       </div>
     </section>
 
-    <!-- ── Goals Section ── -->
-    <section class="content-section" id="section-goals">
-      <div class="section-header">
-        <h2>Goals</h2>
-        <div class="section-header-actions">
-          <button class="btn btn-primary admin-only" id="btn-add-goal" style="display:none;">
-            <span class="material-icons-outlined btn-icon">add</span>
-            Add Goal
-          </button>
-        </div>
-      </div>
-      <div class="goals-grid" id="goals-grid">
-        <!-- Goal cards rendered by goals.js -->
-      </div>
-    </section>
-
     <!-- ── Transaction Modal (Admin) ── -->
     <div class="modal-overlay" id="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal" id="transaction-modal">
@@ -343,7 +323,6 @@
           <div class="shortcut-row"><kbd>1</kbd> <span>Go to Dashboard</span></div>
           <div class="shortcut-row"><kbd>2</kbd> <span>Go to Transactions</span></div>
           <div class="shortcut-row"><kbd>3</kbd> <span>Go to Insights</span></div>
-          <div class="shortcut-row"><kbd>4</kbd> <span>Go to Goals</span></div>
           <div class="shortcut-row"><kbd>?</kbd> <span>Show Shortcuts</span></div>
         </div>
       </div>
@@ -359,7 +338,6 @@
   <script src="charts.js"></script>
   <script src="transactions.js"></script>
   <script src="insights.js"></script>
-  <script src="goals.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
